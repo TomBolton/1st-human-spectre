@@ -632,7 +632,6 @@ for jn in range(0,nt):
          ceke_2D = ceke_2D + ceke_tmp
          
       psd_2D = calculate_ke(kx,ky,means_anomalies['u_vm'],means_anomalies['v_vm'])
-      ke_adv = calculate_spectral_flux(kx,ky,uvel,vvel)
       
       ## Calculate spectral fluxes of triad interactions
       ## Change in barotropic EKE from baroclinic interactions
@@ -641,7 +640,13 @@ for jn in range(0,nt):
       
       adv_bt_bc_bc = Tk_data['Tk_bt_bc_bc']
       adv_bt_bt_bt = Tk_data['Tk_bt_bt_bt']
+      adv_bc_bc_bc = Tk_data['Tk_bc_bc_bc']
       
+      uvel = uvel[0,:,:]
+      vvel = vvel[0,:,:]
+      vort = vort[0,:,:]
+      
+      ke_adv = calculate_spectral_flux(kx,ky,uvel,vvel)
       ens_2D = calculate_ens(kx,ky,vort)
       ens_adv = calculate_spectral_ens_flux(kx,ky,uvel,vvel,vort)
       
@@ -707,6 +712,7 @@ for jn in range(0,nt):
       
       vk,Tk_bt_bc_bc,Pi_bt_bc_bc = integrate_spectrum(adv_bt_bc_bc,wvsq,k,dk)
       vk,Tk_bt_bt_bt,Pi_bt_bt_bt = integrate_spectrum(adv_bt_bt_bt,wvsq,k,dk)
+      vk,Tk_bc_bc_bc,Pi_bc_bc_bc = integrate_spectrum(adv_bc_bc_bc,wvsq,k,dk)
       
       ens = np.zeros((nk))
       ens2 = np.zeros((nk))
@@ -741,6 +747,7 @@ for jn in range(0,nt):
          i_psd_ceke = 13
          i_Tk_bt_bc_bc = 14
          i_Tk_bt_bt_bt = 15
+         i_Tk_bc_bc_bc = 16
          
          store = np.zeros((20,nt,nt2,nk-1))
          
@@ -762,6 +769,7 @@ for jn in range(0,nt):
       store[i_psd_ceke,jn,jn2,:] = psd_ceke[:]
       store[i_Tk_bt_bc_bc,jn,jn2,:] = Tk_bt_bc_bc[:]
       store[i_Tk_bt_bt_bt,jn,jn2,:] = Tk_bt_bt_bt[:]
+      store[i_Tk_bc_bc_bc,jn,jn2,:] = Tk_bc_bc_bc[:]
       
       ## smooth using a 20-point running mean, or less if
       ## data is less than 20 points. 
@@ -795,6 +803,7 @@ for jn in range(0,nt):
          
          Tk_bt_bc_bc = mean_store[i_Tk_bt_bc_bc,jn,:]
          Tk_bt_bt_bt = mean_store[i_Tk_bt_bt_bt,jn,:]
+         Tk_bc_bc_bc = mean_store[i_Tk_bc_bc_bc,jn,:]
          
          ## Calculate variability
          psd_ke_std = np.std(store[0,jn,:,:],axis=0)
@@ -922,6 +931,7 @@ for jn in range(0,nt):
          data['psd_ceke'] = psd_ceke
          data['Tk_bt_bc_bc'] = Tk_bt_bc_bc
          data['Tk_bt_bt_bt'] = Tk_bt_bt_bt
+         data['Tk_bc_bc_bc'] = Tk_bc_bc_bc
          
          if (lpsd_freq):
             data['omega'] = vk_t
@@ -997,10 +1007,11 @@ if (1):
          vk = data['k']
          v1 = data['Tk_bt_bc_bc']
          v2 = data['Tk_bt_bt_bt']
+         v3 = data['Tk_bc_bc_bc']
          
          kmin = vk[0]
          kmax = vk[-1]
-         vmax = max( np.abs(v1).max(), np.abs(v2).max() )
+         vmax = max( np.abs(v1).max(), np.abs(v2).max(), np.abs(v3).max() )
          vmin = -vmax
          
          if ('Rossby' in data.keys()):
@@ -1019,7 +1030,9 @@ if (1):
          labels.append(name[jn])              
          
          ax2.semilogx(vk,v2,color=data['color'],linestyle='-',basex=10)
-      
+         
+         ax3.semilogx(vk,v3,color=data['color'],linestyle='-',basex=10)
+         
       ax1.callbacks.connect("xlim_changed", convert_k_to_len)
       fig.legend(plots,labels,bbox_to_anchor=(0.65,0.7,0.3,0.2), loc=2, borderaxespad=0., fontsize=10)   
       figname = 'bc_bt_KE_transfers_'+region+'_'+starttime+'-'+endtime

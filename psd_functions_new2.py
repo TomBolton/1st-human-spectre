@@ -423,11 +423,14 @@ def calculate_spectral_flux_baroclinic_barotropic(kx,ky,u_bt,v_bt,u_bc,v_bc):
                            np.conj(vhat_bt)*fftn(adv_v_bc_bc) )   #[m2/s3]
    Tk_bt_bt_bt = np.real( -np.conj(uhat_bt)*fftn(adv_u_bt_bt) - \
                            np.conj(vhat_bt)*fftn(adv_v_bt_bt) )   #[m2/s3]
+   Tk_bc_bc_bc = np.real( -np.conj(uhat_bc)*fftn(adv_u_bc_bc) - \
+                           np.conj(vhat_bc)*fftn(adv_v_bc_bc) )
    
    nn = (nx**2 * ny**2)                        
    data = {}
    data['Tk_bt_bc_bc'] = Tk_bt_bc_bc / float(nn)
    data['Tk_bt_bt_bt'] = Tk_bt_bt_bt / float(nn)
+   data['Tk_bc_bc_bc'] = Tk_bc_bc_bc / float(nn)
    
    return data
 
